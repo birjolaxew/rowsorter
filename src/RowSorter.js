@@ -23,7 +23,9 @@
             stickBottomRows : 0,
             onDragStart     : null,
             onDragEnd       : null,
-            onDrop          : null
+            onDrop          : null,
+            scrollSens      : 60, // distance to viewport before we start scrolling
+            scrollSpeed     : 10  // pixels pr. frame to scroll
         };
 
     function RowSorter(table, opts)
@@ -57,6 +59,7 @@
         this._mousedown = bind(mousedown, this);
         this._mousemove = bind(mousemove, this);
         this._mouseup = bind(mouseup, this);
+        this._scrollListener = bind(scrollListen, this);
 
         this._touchstart = bind(touchstart, this);
         this._touchmove = bind(touchmove, this);
@@ -222,13 +225,48 @@
 
         // attach events
         addEvent(this._table, 'mousemove', this._mousemove);
+        addEvent(document.body, 'mousemove', this._scrollListener);
 
         if (touchSupport) {
             addEvent(this._table, 'touchmove', this._touchmove);
+            addEvent(document.body, 'mousemove', this._scrollListener);
         }
 
         return true;
     };
+
+    function scrollListen(ev)
+    {
+        ev = ev || window.event;
+        if (ev.touches && ev.touches.length === 1) {
+            if (this._touchId === ev.touches[0].identifier) {
+                ev = ev.touches[0];
+            }
+        }
+
+        var y = ev.clientY,
+            wH = window.innerHeight;
+
+        if (y < this._options.scrollSens || wH - y < this._options.scrollSens) {
+            if (!this._scrolling) {
+                this._scrolling = true;
+                this._scrollDir = y < wH - y ? -1 : 1;
+                scrollLoop.call(this);
+            }
+        } else {
+            this._scrolling = false;
+        }
+    }
+    function scrollLoop()
+    {
+        if (!this._scrolling) {
+            return;
+        }
+
+        document.body.scrollTop += this._options.scrollSpeed * this._scrollDir;
+
+        requestAnimationFrame(scrollLoop.bind(this));
+    }
 
     function mousemove(ev)
     {
@@ -363,9 +401,11 @@
 
         // attach events
         removeEvent(this._table, 'mousemove', this._mousemove);
+        removeEvent(document.body, 'mousemove', this._scrollListener);
 
         if (touchSupport) {
             removeEvent(this._table, 'touchmove', this._touchmove);
+            removeEvent(document.body, 'touchmove', this._scrollListener);
         }
     };
 
