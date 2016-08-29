@@ -257,6 +257,11 @@
             return;
         }
 
+        // if we've already rendered this frame, kill the event.
+        if (this._drewThisFrame) {
+            return;
+        }
+
         // find direction by last stored position
         var direction = clientY > this._lastY ? 1 : (clientY < this._lastY ? -1 : 0);
 
@@ -287,6 +292,11 @@
                 // move row
                 if (move) {
                     moveRow(this._draggingRow, hoveredRow, direction);
+
+                    this._drewThisFrame = true;
+                    requestAnimationFrame(function(){
+                        this._drewThisFrame = false;
+                    }.bind(this));
                 }
 
                 // store last mouse position
@@ -758,6 +768,16 @@
         }
         return -1;
     }
+
+    /**
+     * Polyfill requestAnimationFrame
+     */
+    var requestAnimationFrame = 
+            window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            function(cb){setTimeout(cb, 1000/60);};
+            
 
     // if jQuery, register plugin.
     if ($) {
