@@ -37,12 +37,14 @@ $.rowSorter.destroy('#table_id');
     @string   handler         : drag handler selector (default: null)
     @boolean  tbody           : pass true if want to sort only tbody > tr. (default: true)
     @string   tableClass      : adds this class name to table while rows are sorting (default: "sorting-table")
-    @string   dragClass       : dragging row's class name (default: "sorting-row").
-    @number   stickTopRows    : count of top sticky rows (default: 0),
-    @number   stickBottomRows : count of bottom sticky rows (default: 0),
+    @string   dragClass       : dragging row's class name (default: "sorting-row")
+    @number   stickTopRows    : count of top sticky rows (default: 0)
+    @number   stickBottomRows : count of bottom sticky rows (default: 0)
     @function onDragStart     : (default: null)
     @function onDragEnd       : (default: null)
     @function onDrop          : (default: null)
+    @number   scrollSens      : distance from viewport edges to start scrolling (default: 60)
+    @function scrollSpeed     : pixels to scroll pr. frame. Can be function with single argument in range [0,1] which returns number, or number (default: 5+Math.pow(x,2)*15)
 
 #### Handling Events
 ```javascript

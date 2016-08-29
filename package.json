@@ -1,11 +1,11 @@
 {
-  "name": "@borayazilim/rowsorter",
+  "name": "@birjolaxew/rowsorter",
   "description": "Drag & drop table row sorter pluging with touch support for Vanilla JS and jQuery.",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:borayazilim/rowsorter.git"
+    "url": "git@github.com:birjolaxew/rowsorter.git"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
