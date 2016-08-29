@@ -25,7 +25,9 @@
             onDragEnd       : null,
             onDrop          : null,
             scrollSens      : 60, // distance to viewport before we start scrolling
-            scrollSpeed     : 10  // pixels pr. frame to scroll
+            scrollSpeed     : function(x){ // pixels pr. frame
+                return 5 + Math.pow(x,2)*15; // x is in range [0,1]
+            }
         };
 
     function RowSorter(table, opts)
@@ -245,9 +247,13 @@
         }
 
         var y = ev.clientY,
-            wH = window.innerHeight;
+            wH = window.innerHeight,
+            dist = Math.min(y, wH-y);
 
-        if (y < this._options.scrollSens || wH - y < this._options.scrollSens) {
+        if (dist < this._options.scrollSens) {
+            this._scrollSpeed = typeof this._options.scrollSpeed === "function" ?
+                this._options.scrollSpeed((this._options.scrollSens - dist) / this._options.scrollSens) :
+                this._options.scrollSpeed;
             if (!this._scrolling) {
                 this._scrolling = true;
                 this._scrollDir = y < wH - y ? -1 : 1;
@@ -259,11 +265,11 @@
     }
     function scrollLoop()
     {
-        if (!this._scrolling) {
+        if (!this._scrolling || !this._draggingRow) {
             return;
         }
 
-        document.body.scrollTop += this._options.scrollSpeed * this._scrollDir;
+        document.body.scrollTop += this._scrollSpeed * this._scrollDir;
 
         requestAnimationFrame(scrollLoop.bind(this));
     }
