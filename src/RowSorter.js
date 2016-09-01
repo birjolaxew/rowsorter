@@ -147,7 +147,7 @@
     {
         if (ev.touches.length === 1) {
             var touch = ev.touches[0],
-                target = document.elementFromPoint(touch.clientX, touch.clientY);
+                target = ev.target || document.elementFromPoint(touch.clientX, touch.clientY);
 
             this._touchId = touch.identifier;
             if (this._start(target, touch.clientY)) {
@@ -176,6 +176,10 @@
 
         // if handler options is specified
         if (this._options.handler) {
+            if (target.matches && !target.matches(this._options.handler)) {
+                return false;
+            }
+
             // find the handlers
             var handlers = qsa(this._table, this._options.handler);
             // check targeted element in handlers
@@ -231,7 +235,7 @@
 
         if (touchSupport) {
             addEvent(this._table, 'touchmove', this._touchmove);
-            addEvent(document.body, 'mousemove', this._scrollListener);
+            addEvent(document.body, 'touchmove', this._scrollListener);
         }
 
         return true;
@@ -239,6 +243,10 @@
 
     function scrollListen(ev)
     {
+        if (!this._draggingRow) {
+            return;
+        }
+
         ev = ev || window.event;
         if (ev.touches && ev.touches.length === 1) {
             if (this._touchId === ev.touches[0].identifier) {
@@ -248,7 +256,7 @@
 
         var y = ev.clientY,
             wH = window.innerHeight,
-            dist = Math.min(y, wH-y);
+            dist = Math.max(0, Math.min(y, wH-y));
 
         if (dist < this._options.scrollSens) {
             this._scrollSpeed = typeof this._options.scrollSpeed === "function" ?
@@ -282,12 +290,13 @@
     }
 
     function touchmove(ev)
-    {
+    {   
+        if (this._drewThisFrame) { return; }
         if (ev.touches.length === 1) {
-            var touch = ev.touches[0],
-                target = document.elementFromPoint(touch.clientX, touch.clientY);
+            var touch = ev.touches[0];
 
             if (this._touchId === touch.identifier) {
+                var target = document.elementFromPoint(touch.clientX, touch.clientY);
                 this._move(target, touch.clientY);
             }
         }
@@ -305,6 +314,11 @@
         if (this._drewThisFrame) {
             return;
         }
+
+        this._drewThisFrame = true;
+        requestAnimationFrame(function(){
+            this._drewThisFrame = false;
+        }.bind(this));
 
         // find direction by last stored position
         var direction = clientY > this._lastY ? 1 : (clientY < this._lastY ? -1 : 0);
@@ -336,11 +350,6 @@
                 // move row
                 if (move) {
                     moveRow(this._draggingRow, hoveredRow, direction);
-
-                    this._drewThisFrame = true;
-                    requestAnimationFrame(function(){
-                        this._drewThisFrame = false;
-                    }.bind(this));
                 }
 
                 // store last mouse position
@@ -633,6 +642,10 @@
      */
     function hasClass(element, cls)
     {
+        if ($) {
+            return $(element).hasClass(cls);
+        }
+
         cls = trim(cls);
         if (cls === '') {
             return false;
